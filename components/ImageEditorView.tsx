@@ -55,6 +55,7 @@ export const ImageEditorView: React.FC = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [aiResultUrl, setAiResultUrl] = useState<string | null>(null);
     const [aiScale, setAiScale] = useState<2 | 4>(2);
+    const [comparisonZoom, setComparisonZoom] = useState(1);
     
     const [error, setError] = useState<string | null>(null);
 
@@ -107,6 +108,7 @@ export const ImageEditorView: React.FC = () => {
         setIsProcessing(false);
         setAiResultUrl(null);
         setError(null);
+        setComparisonZoom(1);
     };
 
     const handleApplyCrop = () => {
@@ -227,6 +229,7 @@ export const ImageEditorView: React.FC = () => {
         setIsProcessing(true);
         setError(null);
         setAiResultUrl(null);
+        setComparisonZoom(1);
         
         try {
             const dimensions = await getImageDimensionsFromUrl(imageUrl);
@@ -234,7 +237,7 @@ export const ImageEditorView: React.FC = () => {
             const targetHeight = dimensions.height * aiScale;
 
             const base64Data = dataUrlToBase64(imageUrl);
-            const prompt = `Critically important: Upscale this image by a factor of ${aiScale}x and enhance its quality. The required output dimensions are exactly ${targetWidth}x${targetHeight} pixels. Improve clarity, color, and detail. Do not change the aspect ratio or composition.`;
+            const prompt = `Tâche : Redimensionner cette image. Les dimensions originales sont ${dimensions.width}x${dimensions.height}. Les nouvelles dimensions DOIVENT ÊTRE EXACTEMENT ${targetWidth}x${targetHeight}. Pendant le redimensionnement, utilisez l'IA pour améliorer les détails et la qualité afin de correspondre à la nouvelle résolution plus grande. Ne pas recadrer, ajouter ou supprimer de contenu.`;
 
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
             const response = await ai.models.generateContent({
@@ -261,6 +264,7 @@ export const ImageEditorView: React.FC = () => {
             setImageUrl(aiResultUrl);
             setOriginalImageForCompare(aiResultUrl);
             setAiResultUrl(null);
+            setComparisonZoom(1);
         }
     };
     
@@ -310,9 +314,6 @@ export const ImageEditorView: React.FC = () => {
             }
         };
         
-        const imageWidth = imageRef.current?.clientWidth ?? 0;
-        const imageHeight = imageRef.current?.clientHeight ?? 0;
-        
         return (
             <div className="absolute inset-0 pointer-events-none">
                 {/* Dark overlay */}
@@ -341,13 +342,24 @@ export const ImageEditorView: React.FC = () => {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="text-center">
                                 <h4 className="text-slate-300 mb-2">Avant</h4>
-                                <img src={originalImageForCompare!} alt="Avant IA" className="max-w-full max-h-[40vh] object-contain mx-auto" />
+                                <div className="aspect-square bg-black/20 rounded-lg overflow-hidden">
+                                    <img src={originalImageForCompare!} alt="Avant IA" className="w-full h-full object-contain transition-transform duration-200" style={{ transform: `scale(${comparisonZoom})` }} />
+                                </div>
                             </div>
                             <div className="text-center">
-                                <h4 className="text-slate-300 mb-2">Après (IA)</h4>
-                                <img src={aiResultUrl} alt="Après IA" className="max-w-full max-h-[40vh] object-contain mx-auto" />
+                                <h4 className="text-slate-300 mb-2">Après (IA x{aiScale})</h4>
+                                <div className="aspect-square bg-black/20 rounded-lg overflow-hidden">
+                                    <img src={aiResultUrl} alt="Après IA" className="w-full h-full object-contain transition-transform duration-200" style={{ transform: `scale(${comparisonZoom})` }} />
+                                </div>
                             </div>
                         </div>
+                         <div className="mt-4 bg-slate-900/70 p-3 rounded-lg">
+                             <label htmlFor="zoom" className="block text-sm font-medium text-slate-300 mb-1">Zoom Comparaison</label>
+                             <div className="flex items-center gap-4">
+                                <input type="range" id="zoom" min="1" max="4" step="0.1" value={comparisonZoom} onChange={e => setComparisonZoom(Number(e.target.value))} className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer" />
+                                <button onClick={() => setComparisonZoom(1)} className="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded-md">Reset</button>
+                             </div>
+                         </div>
                     </div>
                 ) : (
                     <div ref={imageContainerRef} className="relative select-none">
@@ -412,7 +424,7 @@ export const ImageEditorView: React.FC = () => {
                             {aiResultUrl && (
                                 <div className="mt-4 border-t border-slate-700 pt-4 space-y-2">
                                     <button onClick={handleAcceptAi} className="w-full bg-green-600 text-white font-semibold py-2 rounded-md hover:bg-green-700">Accepter les modifications</button>
-                                    <button onClick={() => setAiResultUrl(null)} className="w-full bg-slate-600 text-white font-semibold py-2 rounded-md hover:bg-slate-500">Annuler</button>
+                                    <button onClick={() => { setAiResultUrl(null); setComparisonZoom(1); }} className="w-full bg-slate-600 text-white font-semibold py-2 rounded-md hover:bg-slate-500">Annuler</button>
                                 </div>
                             )}
                         </div>
