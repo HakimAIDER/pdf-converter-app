@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
@@ -13,9 +12,10 @@ import { PdfSignView } from './components/PdfSignView';
 import { ImageBulkEditView } from './components/ImageBulkEditView';
 import { ImageRemoveLogoView } from './components/ImageRemoveLogoView';
 import { ProfessionalPhotoView } from './components/ProfessionalPhotoView';
+import { ImageEditorView } from './components/ImageEditorView';
 import { Footer } from './components/Footer';
 
-export type Mode = 'image-to-pdf' | 'pdf-to-image' | 'pdf-to-word' | 'word-to-pdf' | 'image-to-text' | 'pdf-merge' | 'pdf-sign' | 'image-bulk-edit' | 'image-remove-logo' | 'professional-photo';
+export type Mode = 'image-to-pdf' | 'pdf-to-image' | 'pdf-to-word' | 'word-to-pdf' | 'image-to-text' | 'pdf-merge' | 'pdf-sign' | 'image-bulk-edit' | 'image-remove-logo' | 'professional-photo' | 'image-editor';
 
 const App: React.FC = () => {
   const [mode, setMode] = useState<Mode>('image-to-pdf');
@@ -36,6 +36,8 @@ const App: React.FC = () => {
         return <PdfMergeView />;
       case 'pdf-sign':
         return <PdfSignView />;
+      case 'image-editor':
+        return <ImageEditorView />;
       case 'image-bulk-edit':
         return <ImageBulkEditView />;
       case 'image-remove-logo':
