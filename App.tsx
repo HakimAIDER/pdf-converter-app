@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Header } from './components/Header';
+import { Hero } from './components/Hero';
 import { ModeSelector } from './components/ModeSelector';
 import { ImageToPdfView } from './components/ImageToPdfView';
 import { PdfToImageView } from './components/PdfToImageView';
@@ -11,6 +12,7 @@ import { PdfSignView } from './components/PdfSignView';
 import { ImageBulkEditView } from './components/ImageBulkEditView';
 import { ImageRemoveLogoView } from './components/ImageRemoveLogoView';
 import { ProfessionalPhotoView } from './components/ProfessionalPhotoView';
+import { Footer } from './components/Footer';
 
 export type Mode = 'image-to-pdf' | 'pdf-to-image' | 'pdf-to-word' | 'word-to-pdf' | 'image-to-text' | 'pdf-merge' | 'pdf-sign' | 'image-bulk-edit' | 'image-remove-logo' | 'professional-photo';
 
@@ -48,21 +50,15 @@ const App: React.FC = () => {
     <div className="flex flex-col min-h-screen w-full text-white overflow-x-hidden">
       <Header />
       <main className="flex-grow flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 pt-24">
-        <div className="w-full max-w-4xl mx-auto animate-fade-in-down">
-          <div className="text-center mb-10">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-100 to-slate-400">
-              Convertisseur de Fichiers Ultime
-            </h1>
-            <p className="mt-4 text-lg text-slate-400 max-w-2xl mx-auto">
-              Transformez vos images, PDF et documents Word avec une facilité déconcertante.
-            </p>
-          </div>
+        <div id="fonctionnalites" className="w-full max-w-4xl mx-auto animate-fade-in-down">
+          <Hero />
           <ModeSelector selectedMode={mode} onSelectMode={setMode} />
         </div>
         <div key={mode} className="mt-8 w-full max-w-4xl animate-fade-in">
           {renderView()}
         </div>
       </main>
+      <Footer />
     </div>
   );
 };

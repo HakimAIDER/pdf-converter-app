@@ -1,5 +1,5 @@
 {
-  "name": "Convertisseur de Fichiers Ultime",
+  "name": "Outils-gratuits",
   "description": "Une application web tout-en-un pour convertir des images en PDF, des PDF en images, des PDF en Word, des Word en PDF, et extraire le texte des images (OCR).",
   "requestFramePermissions": []
 }
