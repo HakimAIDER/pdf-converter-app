@@ -15,8 +15,8 @@ const modes: { id: Mode; name: string }[] = [
   { id: 'pdf-merge', name: 'Fusionner PDF' },
   { id: 'pdf-sign', name: 'Signer PDF' },
   { id: 'image-bulk-edit', name: 'Logo/Bordure en Bloc' },
-  { id: 'image-upscale', name: 'Agrandir Image (IA)' },
   { id: 'image-remove-logo', name: 'Supprimer Logo (IA)' },
+  { id: 'professional-photo', name: 'Portrait Pro IA' },
 ];
 
 export const ModeSelector: React.FC<ModeSelectorProps> = ({ selectedMode, onSelectMode }) => {

@@ -9,10 +9,10 @@ import { ImageToTextView } from './components/ImageToTextView';
 import { PdfMergeView } from './components/PdfMergeView';
 import { PdfSignView } from './components/PdfSignView';
 import { ImageBulkEditView } from './components/ImageBulkEditView';
-import { ImageUpscaleView } from './components/ImageUpscaleView';
 import { ImageRemoveLogoView } from './components/ImageRemoveLogoView';
+import { ProfessionalPhotoView } from './components/ProfessionalPhotoView';
 
-export type Mode = 'image-to-pdf' | 'pdf-to-image' | 'pdf-to-word' | 'word-to-pdf' | 'image-to-text' | 'pdf-merge' | 'pdf-sign' | 'image-bulk-edit' | 'image-upscale' | 'image-remove-logo';
+export type Mode = 'image-to-pdf' | 'pdf-to-image' | 'pdf-to-word' | 'word-to-pdf' | 'image-to-text' | 'pdf-merge' | 'pdf-sign' | 'image-bulk-edit' | 'image-remove-logo' | 'professional-photo';
 
 const App: React.FC = () => {
   const [mode, setMode] = useState<Mode>('image-to-pdf');
@@ -35,10 +35,10 @@ const App: React.FC = () => {
         return <PdfSignView />;
       case 'image-bulk-edit':
         return <ImageBulkEditView />;
-      case 'image-upscale':
-        return <ImageUpscaleView />;
       case 'image-remove-logo':
         return <ImageRemoveLogoView />;
+      case 'professional-photo':
+        return <ProfessionalPhotoView />;
       default:
         return <ImageToPdfView />;
     }
