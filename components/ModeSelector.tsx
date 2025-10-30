@@ -13,6 +13,10 @@ const modes: { id: Mode; name: string }[] = [
   { id: 'pdf-to-word', name: 'PDF → Word' },
   { id: 'image-to-text', name: 'Image → Texte' },
   { id: 'pdf-merge', name: 'Fusionner PDF' },
+  { id: 'pdf-sign', name: 'Signer PDF' },
+  { id: 'image-bulk-edit', name: 'Logo/Bordure en Bloc' },
+  { id: 'image-upscale', name: 'Agrandir Image (IA)' },
+  { id: 'image-remove-logo', name: 'Supprimer Logo (IA)' },
 ];
 
 export const ModeSelector: React.FC<ModeSelectorProps> = ({ selectedMode, onSelectMode }) => {
