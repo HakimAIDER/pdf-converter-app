@@ -22,6 +22,7 @@ export const PdfToImageView: React.FC = () => {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [imageFormat, setImageFormat] = useState<'jpeg' | 'png'>('jpeg');
   const [quality, setQuality] = useState(0.92); // Pour JPEG
+  const [resolutionScale, setResolutionScale] = useState<number>(2);
 
   const handleConvert = async () => {
     if (!file) {
@@ -47,7 +48,7 @@ export const PdfToImageView: React.FC = () => {
 
       for (let i = 1; i <= numPages; i++) {
         const page = await pdf.getPage(i);
-        const viewport = page.getViewport({ scale: 2.0 }); // Une échelle plus élevée pour une meilleure qualité
+        const viewport = page.getViewport({ scale: resolutionScale }); 
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
         if (!context) continue;
@@ -102,34 +103,57 @@ export const PdfToImageView: React.FC = () => {
       <PdfUploader file={file} onFileChange={(f) => { setFile(f); setError(null); setImageUrls([]); }} />
 
       {file && (
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
-          <div>
-            <label htmlFor="imageFormat" className="block text-sm font-medium text-slate-300">Format de l'image</label>
-            <select
-              id="imageFormat"
-              value={imageFormat}
-              onChange={(e) => setImageFormat(e.target.value as 'jpeg' | 'png')}
-              className="mt-1 block w-full pl-3 pr-10 py-2.5 text-base rounded-md bg-slate-700 text-white border-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-cyan-400"
-            >
-              <option value="jpeg">JPEG</option>
-              <option value="png">PNG</option>
-            </select>
-          </div>
-          {imageFormat === 'jpeg' && (
-             <div>
-                <label htmlFor="quality" className="block text-sm font-medium text-slate-300">Qualité ({Math.round(quality * 100)}%)</label>
-                <input
-                    id="quality"
-                    type="range"
-                    min="0.1"
-                    max="1"
-                    step="0.01"
-                    value={quality}
-                    onChange={(e) => setQuality(parseFloat(e.target.value))}
-                    className="mt-1 w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                />
+        <div className="mt-6 animate-fade-in space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="imageFormat" className="block text-sm font-medium text-slate-300">Format de l'image</label>
+              <select
+                id="imageFormat"
+                value={imageFormat}
+                onChange={(e) => setImageFormat(e.target.value as 'jpeg' | 'png')}
+                className="mt-1 block w-full pl-3 pr-10 py-2.5 text-base rounded-md bg-slate-700 text-white border-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-cyan-400"
+              >
+                <option value="jpeg">JPEG</option>
+                <option value="png">PNG</option>
+              </select>
             </div>
-          )}
+            {imageFormat === 'jpeg' && (
+               <div>
+                  <label htmlFor="quality" className="block text-sm font-medium text-slate-300">Qualité ({Math.round(quality * 100)}%)</label>
+                  <input
+                      id="quality"
+                      type="range"
+                      min="0.1"
+                      max="1"
+                      step="0.01"
+                      value={quality}
+                      onChange={(e) => setQuality(parseFloat(e.target.value))}
+                      className="mt-1 w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                  />
+              </div>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Résolution de sortie</label>
+            <div className="flex justify-around bg-slate-900/50 p-1 rounded-lg">
+                {[
+                    { scale: 1, label: 'Standard' },
+                    { scale: 2, label: 'Haute' },
+                    { scale: 4, label: 'Très Haute' }
+                ].map(({ scale, label }) => (
+                    <button
+                        key={scale}
+                        onClick={() => setResolutionScale(scale)}
+                        className={`w-full py-2 text-sm font-semibold rounded-md transition-colors ${resolutionScale === scale ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:bg-slate-700'}`}
+                    >
+                        {label} ({scale}x)
+                    </button>
+                ))}
+            </div>
+            <p className="text-xs text-slate-400 mt-2 text-center">
+              Une résolution plus élevée produit des images plus nettes mais des fichiers plus lourds.
+            </p>
+          </div>
         </div>
       )}
 

@@ -7,6 +7,7 @@ import { PdfToImageView } from './components/PdfToImageView';
 import { PdfToWordView } from './components/PdfToWordView';
 import { WordToPdfView } from './components/WordToPdfView';
 import { ImageToTextView } from './components/ImageToTextView';
+import { TextToSpeechView } from './components/TextToSpeechView';
 import { PdfMergeView } from './components/PdfMergeView';
 import { PdfSignView } from './components/PdfSignView';
 import { ImageBulkEditView } from './components/ImageBulkEditView';
@@ -15,7 +16,7 @@ import { ProfessionalPhotoView } from './components/ProfessionalPhotoView';
 import { ImageEditorView } from './components/ImageEditorView';
 import { Footer } from './components/Footer';
 
-export type Mode = 'image-to-pdf' | 'pdf-to-image' | 'pdf-to-word' | 'word-to-pdf' | 'image-to-text' | 'pdf-merge' | 'pdf-sign' | 'image-bulk-edit' | 'image-remove-logo' | 'professional-photo' | 'image-editor';
+export type Mode = 'image-to-pdf' | 'pdf-to-image' | 'pdf-to-word' | 'word-to-pdf' | 'image-to-text' | 'text-to-speech' | 'pdf-merge' | 'pdf-sign' | 'image-bulk-edit' | 'image-remove-logo' | 'professional-photo' | 'image-editor';
 
 const App: React.FC = () => {
   const [mode, setMode] = useState<Mode>('image-to-pdf');
@@ -32,6 +33,8 @@ const App: React.FC = () => {
         return <WordToPdfView />;
       case 'image-to-text':
         return <ImageToTextView />;
+      case 'text-to-speech':
+        return <TextToSpeechView />;
       case 'pdf-merge':
         return <PdfMergeView />;
       case 'pdf-sign':

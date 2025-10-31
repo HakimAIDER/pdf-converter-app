@@ -12,6 +12,7 @@ const modes: { id: Mode; name: string }[] = [
   { id: 'word-to-pdf', name: 'Word → PDF' },
   { id: 'pdf-to-word', name: 'PDF → Word' },
   { id: 'image-to-text', name: 'Image → Texte' },
+  { id: 'text-to-speech', name: 'Texte → Voix (IA)' },
   { id: 'pdf-merge', name: 'Fusionner PDF' },
   { id: 'pdf-sign', name: 'Signer PDF' },
   { id: 'image-editor', name: 'Éditeur d\'Image' },
