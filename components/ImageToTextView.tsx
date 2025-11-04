@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ImageUploader } from './ImageUploader';
 import { GoogleGenAI } from '@google/genai';
@@ -40,17 +41,49 @@ export const ImageToTextView: React.FC = () => {
         },
       };
       const textPart = {
-        text: 'Extract all text from this image.',
+        text: 'Extrais tout le texte de cette image.',
       };
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: { parts: [imagePart, textPart] },
       });
-      const text = response.text;
-      setExtractedText(text);
-    } catch (e) {
+      
+      // 1. Vérifier si la requête a été bloquée en amont
+      const promptBlockReason = response.promptFeedback?.blockReason;
+      if (promptBlockReason) {
+          const promptSafetyRatings = response.promptFeedback?.safetyRatings;
+          const blockedCategories = promptSafetyRatings?.filter(r => r.blocked).map(r => r.category).join(', ');
+          throw new Error(`La requête a été bloquée en amont. Raison : ${promptBlockReason}. ${blockedCategories ? `Catégories de sécurité : ${blockedCategories}.` : ''}`);
+      }
+
+      // 2. Vérifier s'il y a des réponses candidates
+      if (!response.candidates || response.candidates.length === 0) {
+          throw new Error("L'API n'a retourné aucune réponse candidate. Cela peut être dû à une erreur interne du service.");
+      }
+
+      // 3. Inspecter la première candidate
+      const candidate = response.candidates[0];
+      const finishReason = candidate.finishReason;
+
+      if (finishReason && finishReason !== 'STOP' && finishReason !== 'FINISH_REASON_UNSPECIFIED') {
+          if (finishReason === 'SAFETY') {
+              const safetyRatings = candidate.safetyRatings;
+              const blockedCategories = safetyRatings?.filter(r => r.blocked).map(r => r.category).join(', ');
+              throw new Error(`La réponse générée a été bloquée pour des raisons de sécurité. ${blockedCategories ? `Catégories : ${blockedCategories}.` : ''} (Raison: ${finishReason})`);
+          }
+          throw new Error(`L'extraction de texte a été interrompue. Raison : ${finishReason}.`);
+      }
+      
+      // 4. Si la génération semble réussie, chercher le contenu
+      if (response.text) {
+          setExtractedText(response.text);
+      } else {
+          throw new Error("Aucun texte n'a pu être extrait. Le modèle n'a retourné aucun contenu textuel.");
+      }
+
+    } catch (e: any) {
       console.error(e);
-      setError("Erreur lors de l'extraction du texte. Veuillez réessayer.");
+      setError(`Erreur lors de l'extraction du texte: ${e.message || 'Veuillez réessayer.'}`);
     } finally {
       setIsExtracting(false);
     }
@@ -70,7 +103,7 @@ export const ImageToTextView: React.FC = () => {
         </button>
       </div>
       
-      {error && <p className="mt-4 text-center text-red-400">{error}</p>}
+      {error && <p className="mt-4 text-center text-red-400 bg-red-900/50 p-3 rounded-md">{error}</p>}
       
       {extractedText && (
         <div className="mt-6">

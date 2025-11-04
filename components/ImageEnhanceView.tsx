@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { GoogleGenAI, Modality } from '@google/genai';
@@ -75,14 +76,53 @@ export const ImageEnhanceView: React.FC = () => {
               },
             });
 
-            const imagePart = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+            // 1. Check for upstream blocking
+            const promptBlockReason = response.promptFeedback?.blockReason;
+            if (promptBlockReason) {
+                const promptSafetyRatings = response.promptFeedback?.safetyRatings;
+                const blockedCategories = promptSafetyRatings?.filter(r => r.blocked).map(r => r.category).join(', ');
+                throw new Error(`La requête a été bloquée en amont. Raison : ${promptBlockReason}. ${blockedCategories ? `Catégories de sécurité : ${blockedCategories}.` : ''}`);
+            }
+
+            // 2. Check for candidates
+            if (!response.candidates || response.candidates.length === 0) {
+                throw new Error("L'API n'a retourné aucune réponse. Le contenu a peut-être été entièrement bloqué.");
+            }
+
+            // 3. Inspect the first candidate
+            const candidate = response.candidates[0];
+            const finishReason = candidate.finishReason;
+            
+            // 4. Handle non-STOP finish reasons
+            if (finishReason && finishReason !== 'STOP' && finishReason !== 'FINISH_REASON_UNSPECIFIED') {
+                if (finishReason === 'SAFETY') {
+                    const safetyRatings = candidate.safetyRatings;
+                    const blockedCategories = safetyRatings?.filter(r => r.blocked).map(r => r.category).join(', ');
+                    throw new Error(`La réponse a été bloquée pour des raisons de sécurité. ${blockedCategories ? `Catégories : ${blockedCategories}.` : 'Veuillez essayer une autre image.'}`);
+                }
+                if (finishReason === 'NO_IMAGE') {
+                    if (response.text) {
+                        throw new Error(`L'IA a refusé de générer une image et a répondu : "${response.text}"`);
+                    } else {
+                        throw new Error("L'IA n'a pas pu générer d'image pour cette requête, possiblement car la tâche était jugée irréalisable.");
+                    }
+                }
+                throw new Error(`La génération d'image a été interrompue. Raison : ${finishReason}.`);
+            }
+            
+            // 5. Look for image content if generation seems successful
+            const imagePart = candidate.content?.parts?.find(p => p.inlineData);
 
             if (imagePart?.inlineData) {
                 const base64ImageBytes: string = imagePart.inlineData.data;
                 const imageUrl = `data:${imagePart.inlineData.mimeType};base64,${base64ImageBytes}`;
                 setProcessedImageUrl(imageUrl);
             } else {
-                throw new Error("L'API n'a pas retourné d'image. Le contenu a peut-être été bloqué ou la réponse est dans un format inattendu.");
+                // Fallback: if no image part, check for text explanation
+                if (response.text) {
+                    throw new Error(`L'IA n'a pas retourné d'image mais un message : "${response.text}"`);
+                }
+                throw new Error("L'API n'a pas retourné d'image et n'a fourni aucune explication. Le contenu a peut-être été bloqué, ou la tâche jugée irréalisable.");
             }
 
         } catch (e: any) {

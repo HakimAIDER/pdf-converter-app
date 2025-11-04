@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { GoogleGenAI, Modality } from '@google/genai';
 import { SpeakerWaveIcon, DownloadIcon } from './IconComponents';
@@ -112,15 +113,43 @@ export const TextToSpeechView: React.FC = () => {
               },
             });
 
-            const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-            if (!base64Audio) {
-                throw new Error("L'API n'a pas retourné de données audio. Le contenu a peut-être été bloqué.");
+            const promptBlockReason = response.promptFeedback?.blockReason;
+            if (promptBlockReason) {
+                const promptSafetyRatings = response.promptFeedback?.safetyRatings;
+                const blockedCategories = promptSafetyRatings?.filter(r => r.blocked).map(r => r.category).join(', ');
+                throw new Error(`La requête a été bloquée en amont. Raison : ${promptBlockReason}. ${blockedCategories ? `Catégories de sécurité : ${blockedCategories}.` : ''}`);
             }
 
-            const pcmData = decode(base64Audio);
-            const wavBlob = pcmToWav(pcmData, 24000, 1, 16);
-            const url = URL.createObjectURL(wavBlob);
-            setAudioUrl(url);
+            if (!response.candidates || response.candidates.length === 0) {
+                throw new Error("L'API n'a retourné aucune réponse. Le contenu a peut-être été entièrement bloqué.");
+            }
+            
+            const candidate = response.candidates[0];
+            const finishReason = candidate.finishReason;
+            
+            if (finishReason && finishReason !== 'STOP' && finishReason !== 'FINISH_REASON_UNSPECIFIED') {
+                if (finishReason === 'SAFETY') {
+                    const safetyRatings = candidate.safetyRatings;
+                    const blockedCategories = safetyRatings?.filter(r => r.blocked).map(r => r.category).join(', ');
+                    throw new Error(`La réponse a été bloquée pour des raisons de sécurité. ${blockedCategories ? `Catégories : ${blockedCategories}.` : ''}`);
+                }
+                throw new Error(`La génération audio a été interrompue. Raison : ${finishReason}.`);
+            }
+            
+            const audioPart = candidate.content?.parts?.find(p => p.inlineData);
+
+            if (audioPart?.inlineData) {
+                const base64Audio = audioPart.inlineData.data;
+                const pcmData = decode(base64Audio);
+                const wavBlob = pcmToWav(pcmData, 24000, 1, 16);
+                const url = URL.createObjectURL(wavBlob);
+                setAudioUrl(url);
+            } else {
+                 if (response.text) {
+                    throw new Error(`L'IA n'a pas retourné d'audio mais un message : "${response.text}"`);
+                }
+                throw new Error("L'API n'a pas retourné de données audio et n'a fourni aucune explication.");
+            }
 
         } catch (e: any) {
             console.error(e);
